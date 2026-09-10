@@ -1,13 +1,9 @@
 - screen:
-    backgroundColor: "transparent"
-    flags: "wfNoBorder"
     name: "BufferingProgress"
+    backgroundColor: "transparent" 
     position: "center,center"
-    resolution: "1920,1080"
     size: "100,100"
     children:
-      - xmlinc:
-          file: "screenpart_fonts.ymlinc"
       - widget:
           alphatest: "off"
           name: "pic"

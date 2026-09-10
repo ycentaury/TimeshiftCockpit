@@ -50,7 +50,6 @@ class CockpitPlayer(
         self.service_ref = service_ref
 
         Screen.__init__(self, session)
-        self.skinName = "TimeshiftCockpitPlayer"
         HelpableScreen.__init__(self)
         InfoBarShowHide.__init__(self)
         InfoBarBase.__init__(self)
@@ -68,6 +67,17 @@ class CockpitPlayer(
         CockpitSeek.__init__(self, session, service, event_start,
                              timeshift_start_time, timeshift=True, service_center=None)
         CockpitPVRState.__init__(self)
+
+        # one or more of the InfoBarXXX mixins above resets self.skinName to
+        # their own default when they run their own __init__ (same
+        # Screen.__init__-overwrites-skinName pattern seen elsewhere in this
+        # codebase) - setting it straight after Screen.__init__() wasn't
+        # enough, since later mixin __init__ calls stomped it again. Setting
+        # it last, after every base __init__ has run, is what actually
+        # sticks - this is why skin lookup was falling back to an
+        # undefined embedded skin ("<embedded-in-CockpitPlayer>",
+        # position=(?, ?)) instead of resolving TimeshiftCockpitPlayer.
+        self.skinName = "TimeshiftCockpitPlayer"
 
         self._event_tracker = ServiceEventTracker(
             screen=self,
@@ -184,6 +194,12 @@ class CockpitPlayer(
                 self.doSkip(int(time()) - self.timeshift_start_time)
 
     def showMovieInfo(self):
+        # self.event is only ever refreshed as a side effect of
+        # getEventInfo(), which nothing calls automatically on entering the
+        # player - only nextEvent()/previousEvent()/skipForward()/
+        # skipBackward() do, reactively. Refresh it here too, or INFO
+        # pressed before any of those shows nothing on a still-None event.
+        self.getEventInfo()
         if self.event:
             self.session.open(MovieInfoEPG, self.event,
                               ServiceReference(self.service))

@@ -6,6 +6,7 @@ from time import time
 from Screens.InfoBar import InfoBar as InfoBarOrg
 from Screens.MessageBox import MessageBox
 from Screens.Standby import inStandby
+from Components.ActionMap import HelpableActionMap
 from Components.config import config
 from Components.ServiceEventTracker import ServiceEventTracker
 from Tools import Notifications
@@ -45,6 +46,22 @@ class InfoBar(InfoBarOrg):
         self.max_timeshifts = 0
         NavigationInstance.instance.record_event.append(self.gotRecordEvent)
         self.setFixedServices()
+
+        # pressing pause on live TV fires "timeshiftStart" in Enigma2's own
+        # "InfobarTimeshiftActions" keymap context - this binding is what
+        # actually wires that key press to startTimeshift() below; without
+        # it, the key press reaches no active handler and Enigma2 shows the
+        # disabled-action icon instead of starting timeshift. A distinct key
+        # name (not "TimeshiftActions") avoids colliding with InfoBarOrg's
+        # own ActionMap of that name, which gates itself on core's own
+        # (unused here) recording-based timeshift state and would otherwise
+        # keep intercepting the key as permanently disabled.
+        self["TSCTimeshiftActions"] = HelpableActionMap(
+            self, "InfobarTimeshiftActions",
+            {
+                "timeshiftStart": (self.startTimeshift, _("start timeshift")),
+            }
+        )
 
     def gotRecordEvent(self, _service, event):
         if event == iRecordableService.evRecordWriteError:

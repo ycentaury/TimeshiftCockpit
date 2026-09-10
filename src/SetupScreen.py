@@ -44,6 +44,25 @@ class SetupScreen(Setup, ChannelSelection):
         )
         enabled_changed = config.plugins.timeshiftcockpit.enabled.value != config.plugins.timeshiftcockpit.enabled.saved_value
         setLogLevel(log_levels[config.plugins.timeshiftcockpit.debug_log_level.value])
+        if enabled_changed:
+            # the InfoBar patch that activates/deactivates the plugin only
+            # runs at enigma2 startup (see plugin.py autoStart) - toggling
+            # this setting has no effect until a GUI restart. This has to
+            # open before Setup.keySave() below, which closes this screen -
+            # a screen can only open a new modal dialog while it's still
+            # the session's active one.
+            self.session.openWithCallback(
+                lambda answer: self._finishSave(permanent_changed, fixed_changed, answer),
+                MessageBox,
+                _("TimeshiftCockpit has been %s. Restart Enigma2 now for this to take effect?") % (
+                    _("activated") if config.plugins.timeshiftcockpit.enabled.value else _("deactivated")),
+                type=MessageBox.TYPE_YESNO,
+                default=True
+            )
+        else:
+            self._finishSave(permanent_changed, fixed_changed, False)
+
+    def _finishSave(self, permanent_changed, fixed_changed, restart_answer):
         Setup.keySave(self)
         if permanent_changed:
             if config.plugins.timeshiftcockpit.permanent.value:
@@ -53,19 +72,5 @@ class SetupScreen(Setup, ChannelSelection):
         elif fixed_changed:
             stopTimeshift()
             startTimeshift()
-        if enabled_changed:
-            # the InfoBar patch that activates/deactivates the plugin only
-            # runs at enigma2 startup (see plugin.py autoStart) - toggling
-            # this setting has no effect until a GUI restart.
-            self.session.openWithCallback(
-                self._restartConfirmed,
-                MessageBox,
-                _("TimeshiftCockpit has been %s. Restart Enigma2 now for this to take effect?") % (
-                    _("activated") if config.plugins.timeshiftcockpit.enabled.value else _("deactivated")),
-                type=MessageBox.TYPE_YESNO,
-                default=True
-            )
-
-    def _restartConfirmed(self, answer):
-        if answer:
+        if restart_answer:
             self.session.open(TryQuitMainloop, retvalue=QUIT_RESTART)

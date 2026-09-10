@@ -83,7 +83,7 @@ msgid "Setup"
 msgstr "Einstellungen"
 
 msgid "TimeshiftCockpit has been %s. Restart Enigma2 now for this to take effect?"
-msgstr "TimeshiftCockpit wurde %. Soll Enigma2 neu gestartet werden, um dies aufzuführen?"
+msgstr "TimeshiftCockpit wurde %s. Soll Enigma2 neu gestartet werden, um dies aufzuführen?"
 
 msgid "activated"
 msgstr "aktiviert"

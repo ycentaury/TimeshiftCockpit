@@ -16,7 +16,7 @@ from .FileUtils import deleteFiles
 from .SkinUtils import loadPluginSkin
 
 
-loadPluginSkin()
+loadPluginSkin("TimeshiftOverview")
 
 
 def openSettings(session, **__):
@@ -46,12 +46,22 @@ def Plugins(**__):
         PluginDescriptor(
             name="TimeshiftCockpit" + " - " + _("Setup"),
             description=_("Configure timeshift modes and channels"),
-            icon="TimeshiftCockpit.png",
+            icon="plugin.png",
             where=[
                 PluginDescriptor.WHERE_PLUGINMENU,
                 PluginDescriptor.WHERE_EXTENSIONSMENU,
             ],
             fnc=openSettings
-        )
+        ),
     ]
+    try:
+        descriptors += [
+            PluginDescriptor(
+                where=PluginDescriptor.WHERE_SKINCHANGE,
+                fnc=loadPluginSkin
+            )
+        ]
+    except Exception:
+        pass
+
     return descriptors
